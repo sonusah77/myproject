@@ -1,0 +1,661 @@
+cd<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>Enterprise Supply Chain Management</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f9;
+transition:0.3s;
+}
+
+.dark{
+background:#111827;
+color:white;
+}
+
+.sidebar{
+width:230px;
+height:100vh;
+background:#1f2937;
+color:white;
+position:fixed;
+padding-top:20px;
+}
+
+.sidebar h2{
+text-align:center;
+}
+
+.sidebar button{
+display:block;
+width:90%;
+margin:10px auto;
+padding:10px;
+background:#374151;
+border:none;
+color:white;
+cursor:pointer;
+}
+
+.sidebar button:hover{
+background:#4b5563;
+}
+
+.main{
+margin-left:230px;
+padding:20px;
+}
+
+.cards{
+display:flex;
+gap:20px;
+margin-bottom:20px;
+}
+
+.card{
+flex:1;
+background:white;
+padding:20px;
+border-radius:6px;
+}
+
+.dark .card{
+background:#1f2937;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+.dark table{
+background:#1f2937;
+}
+
+table th,td{
+border:1px solid #ddd;
+padding:10px;
+}
+
+section{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.login{
+width:320px;
+margin:120px auto;
+background:white;
+padding:20px;
+border-radius:6px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div id="loginPage" class="login">
+
+<h2>SCM Login</h2>
+
+<input id="username" placeholder="Username"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+
+<p id="loginError" style="color:red"></p>
+
+</div>
+
+<div id="system" style="display:none">
+
+<div class="sidebar">
+
+<h2>Supply Chain</h2>
+
+<button onclick="show('dashboard')">Dashboard</button>
+<button onclick="show('inventory')">Inventory</button>
+<button onclick="show('orders')">Orders</button>
+<button onclick="show('suppliers')">Suppliers</button>
+<button onclick="show('analytics')">Analytics</button>
+<button onclick="toggleDark()">Dark Mode</button>
+
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="active">
+
+<h2>Dashboard</h2>
+
+<div class="cards">
+
+<div class="card">
+<h3>Products</h3>
+<p id="productCount"></p>
+</div>
+
+<div class="card">
+<h3>Orders</h3>
+<p id="orderCount"></p>
+</div>
+
+<div class="card">
+<h3>Suppliers</h3>
+<p id="supplierCount"></p>
+</div>
+
+<div class="card">
+<h3>Low Stock</h3>
+<p id="lowStockCount"></p>
+</div>
+
+</div>
+
+<canvas id="dashboardChart"></canvas>
+
+</section>
+
+<!-- INVENTORY -->
+
+<section id="inventory">
+
+<h2>Inventory</h2>
+
+<input id="searchProduct" placeholder="Search Product" onkeyup="searchInventory()">
+
+<br><br>
+
+<input id="barcodeInput" placeholder="Barcode">
+<button onclick="scanBarcode()">Add via Barcode</button>
+
+<br><br>
+
+<input id="productName" placeholder="Product">
+<input id="productQty" type="number" placeholder="Quantity">
+<input id="productSupplier" placeholder="Supplier">
+
+<button onclick="addProduct()">Add Product</button>
+
+<br><br>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Quantity</th>
+<th>Supplier</th>
+<th>Delete</th>
+</tr>
+</thead>
+
+<tbody id="inventoryTable"></tbody>
+
+</table>
+
+</section>
+
+<!-- ORDERS -->
+
+<section id="orders">
+
+<h2>Orders</h2>
+
+<input id="orderProduct" placeholder="Product">
+<input id="orderQty" type="number" placeholder="Quantity">
+
+<select id="orderStatus">
+<option>Pending</option>
+<option>Processing</option>
+<option>Delivered</option>
+</select>
+
+<button onclick="createOrder()">Create Order</button>
+
+<br><br>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Product</th>
+<th>Qty</th>
+<th>Status</th>
+<th>Timeline</th>
+</tr>
+</thead>
+
+<tbody id="ordersTable"></tbody>
+
+</table>
+
+</section>
+
+<!-- SUPPLIERS -->
+
+<section id="suppliers">
+
+<h2>Suppliers</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+</tr>
+</thead>
+
+<tbody id="supplierTable"></tbody>
+
+</table>
+
+</section>
+
+<!-- ANALYTICS -->
+
+<section id="analytics">
+
+<h2>Analytics</h2>
+
+<button onclick="exportPDF()">Export PDF</button>
+<button onclick="exportExcel()">Export Excel</button>
+
+<h3>Inventory Distribution</h3>
+<canvas id="inventoryChart"></canvas>
+
+<h3>Monthly Demand Forecast</h3>
+<canvas id="forecastChart"></canvas>
+
+</section>
+
+</div>
+</div>
+
+<script>
+
+/* LOGIN */
+
+function login(){
+
+let u=document.getElementById("username").value;
+let p=document.getElementById("password").value;
+
+if(u==="admin" && p==="admin123"){
+
+document.getElementById("loginPage").style.display="none";
+document.getElementById("system").style.display="block";
+
+updateDashboard();
+
+}else{
+
+document.getElementById("loginError").innerText="Invalid login";
+
+}
+
+}
+
+/* DARK MODE */
+
+function toggleDark(){
+
+document.body.classList.toggle("dark");
+
+}
+
+/* NAVIGATION */
+
+function show(id){
+
+document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+
+}
+
+/* DATA */
+
+let inventory=[];
+let suppliers=[];
+let orders=[];
+
+/* DEMO DATA */
+
+let products=[
+"Laptop","Phone","Keyboard","Mouse","Monitor",
+"Printer","Tablet","Router","SSD","Hard Drive",
+"Camera","Headphones","Speaker","Projector","Microphone",
+"Smartwatch","Drone","Scanner","GPU","RAM"
+];
+
+for(let i=0;i<products.length;i++){
+
+inventory.push({
+id:i+1,
+name:products[i],
+qty:Math.floor(Math.random()*200)+50,
+supplier:"Supplier "+(i%10+1)
+});
+
+}
+
+for(let i=1;i<=10;i++){
+
+suppliers.push({
+id:i,
+name:"Supplier "+i,
+email:"supplier"+i+"@company.com",
+phone:"90000000"+i
+});
+
+}
+
+/* 120 ORDERS */
+
+for(let i=1;i<=120;i++){
+
+let product=products[Math.floor(Math.random()*products.length)];
+let qty=Math.floor(Math.random()*10)+1;
+
+let statuses=["Pending","Processing","Delivered"];
+let status=statuses[Math.floor(Math.random()*3)];
+
+orders.push({
+id:i,
+product:product,
+qty:qty,
+status:status
+});
+
+/* AUTO INVENTORY REDUCTION */
+
+let item=inventory.find(p=>p.name===product);
+if(item){
+item.qty-=qty;
+}
+
+}
+
+/* DASHBOARD */
+
+function updateDashboard(){
+
+document.getElementById("productCount").innerText=inventory.length;
+document.getElementById("orderCount").innerText=orders.length;
+document.getElementById("supplierCount").innerText=suppliers.length;
+
+checkLowStock();
+
+renderInventory();
+renderOrders();
+renderSuppliers();
+
+createCharts();
+
+}
+
+/* LOW STOCK */
+
+function checkLowStock(){
+
+let low=inventory.filter(p=>p.qty<20);
+
+document.getElementById("lowStockCount").innerText=low.length;
+
+}
+
+/* INVENTORY */
+
+function renderInventory(){
+
+let table=document.getElementById("inventoryTable");
+table.innerHTML="";
+
+inventory.forEach((p,i)=>{
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${p.id}</td>
+
+<td contenteditable onblur="editProduct(${i},this.innerText,'name')">${p.name}</td>
+
+<td contenteditable onblur="editProduct(${i},this.innerText,'qty')">${p.qty}</td>
+
+<td contenteditable onblur="editProduct(${i},this.innerText,'supplier')">${p.supplier}</td>
+
+<td><button onclick="deleteProduct(${i})">Delete</button></td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+function addProduct(){
+
+let name=document.getElementById("productName").value;
+let qty=parseInt(document.getElementById("productQty").value);
+let supplier=document.getElementById("productSupplier").value;
+
+inventory.push({
+id:inventory.length+1,
+name:name,
+qty:qty,
+supplier:supplier
+});
+
+updateDashboard();
+
+}
+
+function scanBarcode(){
+
+let code=document.getElementById("barcodeInput").value;
+
+inventory.push({
+id:inventory.length+1,
+name:"Barcode-"+code,
+qty:50,
+supplier:"Barcode Supplier"
+});
+
+updateDashboard();
+
+}
+
+function deleteProduct(i){
+
+inventory.splice(i,1);
+updateDashboard();
+
+}
+
+/* SEARCH */
+
+function searchInventory(){
+
+let term=document.getElementById("searchProduct").value.toLowerCase();
+
+document.querySelectorAll("#inventoryTable tr").forEach(r=>{
+r.style.display=r.innerText.toLowerCase().includes(term)?"":"none";
+});
+
+}
+
+/* ORDERS */
+
+function orderTimeline(status){
+
+if(status==="Pending") return "Order Created";
+if(status==="Processing") return "Processing → Packaging";
+if(status==="Delivered") return "Processing → Shipped → Delivered";
+
+}
+
+function renderOrders(){
+
+let table=document.getElementById("ordersTable");
+
+table.innerHTML="";
+
+orders.forEach(o=>{
+
+table.innerHTML+=`
+
+<tr>
+<td>${o.id}</td>
+<td>${o.product}</td>
+<td>${o.qty}</td>
+<td>${o.status}</td>
+<td>${orderTimeline(o.status)}</td>
+</tr>
+
+`;
+
+});
+
+}
+
+/* SUPPLIERS */
+
+function renderSuppliers(){
+
+let table=document.getElementById("supplierTable");
+
+table.innerHTML="";
+
+suppliers.forEach(s=>{
+
+table.innerHTML+=`
+
+<tr>
+<td>${s.id}</td>
+<td>${s.name}</td>
+<td>${s.email}</td>
+<td>${s.phone}</td>
+</tr>
+
+`;
+
+});
+
+}
+
+/* CHARTS */
+
+function createCharts(){
+
+new Chart(document.getElementById("dashboardChart"),{
+
+type:"bar",
+
+data:{
+labels:["Products","Orders","Suppliers"],
+datasets:[{
+label:"System Overview",
+data:[inventory.length,orders.length,suppliers.length]
+}]
+}
+
+});
+
+new Chart(document.getElementById("inventoryChart"),{
+
+type:"pie",
+
+data:{
+labels:inventory.map(p=>p.name),
+datasets:[{data:inventory.map(p=>p.qty)}]
+}
+
+});
+
+/* DEMAND FORECAST */
+
+new Chart(document.getElementById("forecastChart"),{
+
+type:"line",
+
+data:{
+labels:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+datasets:[{
+label:"Predicted Demand",
+data:[120,150,180,200,220,250,270,300,320,350,380,420]
+}]
+}
+
+});
+
+}
+
+/* EXPORT */
+
+function exportExcel(){
+
+let csv="Product,Quantity,Supplier\n";
+
+inventory.forEach(p=>{
+csv+=`${p.name},${p.qty},${p.supplier}\n`;
+});
+
+let blob=new Blob([csv]);
+
+let link=document.createElement("a");
+
+link.href=URL.createObjectURL(blob);
+link.download="inventory_report.csv";
+link.click();
+
+}
+
+function exportPDF(){
+
+const { jsPDF } = window.jspdf;
+
+let doc=new jsPDF();
+
+doc.text("Inventory Report",20,20);
+
+let y=30;
+
+inventory.forEach(p=>{
+doc.text(`${p.name} - Qty:${p.qty}`,20,y);
+y+=10;
+});
+
+doc.save("inventory.pdf");
+
+}
+
+</script>
+
+</body>
+</html>

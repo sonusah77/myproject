@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Enterprise Supply Chain Management</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="loginPage" class="login">
+
+<h2>SCM Login</h2>
+
+<input id="username" placeholder="Username"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+
+<p id="loginError"></p>
+
+</div>
+
+<div id="system" style="display:none">
+
+<div class="sidebar">
+
+<h2>Supply Chain</h2>
+
+<button onclick="show('dashboard')">Dashboard</button>
+<button onclick="show('inventory')">Inventory</button>
+<button onclick="show('orders')">Orders</button>
+<button onclick="show('suppliers')">Suppliers</button>
+<button onclick="show('analytics')">Analytics</button>
+<button onclick="toggleDark()">Dark Mode</button>
+
+</div>
+
+<div class="main">
+
+<section id="dashboard" class="active">
+
+<h2>Dashboard</h2>
+
+<div class="cards">
+
+<div class="card">
+<h3>Products</h3>
+<p id="productCount"></p>
+</div>
+
+<div class="card">
+<h3>Orders</h3>
+<p id="orderCount"></p>
+</div>
+
+<div class="card">
+<h3>Suppliers</h3>
+<p id="supplierCount"></p>
+</div>
+
+<div class="card">
+<h3>Low Stock</h3>
+<p id="lowStockCount"></p>
+</div>
+
+</div>
+
+<canvas id="dashboardChart"></canvas>
+
+</section>
+
+<section id="inventory">
+
+<h2>Inventory</h2>
+
+<input id="searchProduct" placeholder="Search Product" onkeyup="searchInventory()">
+
+<br><br>
+
+<input id="barcodeInput" placeholder="Barcode">
+<button onclick="scanBarcode()">Add via Barcode</button>
+
+<br><br>
+
+<input id="productName" placeholder="Product">
+<input id="productQty" type="number" placeholder="Quantity">
+<input id="productSupplier" placeholder="Supplier">
+
+<button onclick="addProduct()">Add Product</button>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Quantity</th>
+<th>Supplier</th>
+<th>Delete</th>
+</tr>
+</thead>
+
+<tbody id="inventoryTable"></tbody>
+
+</table>
+
+</section>
+
+<section id="orders">
+
+<h2>Orders</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Product</th>
+<th>Qty</th>
+<th>Status</th>
+<th>Timeline</th>
+</tr>
+</thead>
+
+<tbody id="ordersTable"></tbody>
+
+</table>
+
+</section>
+
+<section id="suppliers">
+
+<h2>Suppliers</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+</tr>
+</thead>
+
+<tbody id="supplierTable"></tbody>
+
+</table>
+
+</section>
+
+<section id="analytics">
+
+<h2>Analytics</h2>
+
+<button onclick="exportPDF()">Export PDF</button>
+<button onclick="exportExcel()">Export Excel</button>
+
+<h3>Inventory Distribution</h3>
+<canvas id="inventoryChart"></canvas>
+
+<h3>Demand Forecast</h3>
+<canvas id="forecastChart"></canvas>
+
+</section>
+
+</div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
